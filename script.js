@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const viewCounterEl = document.getElementById('viewCounter');
     if (viewCounterEl) {
-        fetch('https://api.counterapi.dev/v1/rickyfarhan/portfolio_v2/up')
+        fetch('https://api.counterapi.dev/v1/rickyfarhan/portfolio/up')
             .then(res => res.json())
             .then(data => {
                 if(data && data.count) {
@@ -109,14 +109,38 @@ document.addEventListener('DOMContentLoaded', () => {
     function connectLanyard() {
         if (!DISCORD_USER_ID) return;
         const ws = new WebSocket('wss://api.lanyard.rest/socket');
+        let heartbeatInterval = null;
+
         ws.onopen = () => {
-            ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_USER_ID } }));
+            // Connected
         };
+        
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
-            if (msg.op === 0) updateDiscordUI(msg.d);
+            
+            if (msg.op === 1) {
+                // Hello message, get heartbeat interval
+                const interval = msg.d.heartbeat_interval;
+                
+                // Send Subscribe command
+                ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_USER_ID } }));
+                
+                // Start sending heartbeat
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
+                heartbeatInterval = setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ op: 3 }));
+                    }
+                }, interval);
+                
+            } else if (msg.op === 0) {
+                // Presence update or Initial state
+                updateDiscordUI(msg.d);
+            }
         };
+        
         ws.onclose = () => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
             setTimeout(connectLanyard, 5000);
         };
     }
