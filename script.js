@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const viewCounterEl = document.getElementById('viewCounter');
     if (viewCounterEl) {
-        fetch('https://api.counterapi.dev/v1/rickyfarhan/portfolio/up')
+        fetch('https://api.counterapi.dev/v1/rickyfarhan/portfolio_v2/up')
             .then(res => res.json())
             .then(data => {
                 if(data && data.count) {
