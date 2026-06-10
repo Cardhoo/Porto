@@ -112,20 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let heartbeatInterval = null;
 
         ws.onopen = () => {
-            // Connected
         };
         
         ws.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             
             if (msg.op === 1) {
-                // Hello message, get heartbeat interval
                 const interval = msg.d.heartbeat_interval;
                 
-                // Send Subscribe command
                 ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_USER_ID } }));
                 
-                // Start sending heartbeat
                 if (heartbeatInterval) clearInterval(heartbeatInterval);
                 heartbeatInterval = setInterval(() => {
                     if (ws.readyState === WebSocket.OPEN) {
@@ -134,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, interval);
                 
             } else if (msg.op === 0) {
-                // Presence update or Initial state
                 updateDiscordUI(msg.d);
             }
         };
